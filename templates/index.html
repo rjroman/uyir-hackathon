@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Detection - Webcam</title>
+</head>
+
+<body>
+    <h1>Live Traffic Detection from Webcam</h1>
+    <video id="video" width="640" height="480" autoplay></video>
+    <button id="captureBtn">Capture Image</button>
+    <script>
+        // Access webcam
+        const video = document.getElementById('video');
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                video.srcObject = stream;
+            })
+            .catch((err) => {
+                console.log("Error accessing webcam: ", err);
+            });
+
+        // Capture and upload image
+        document.getElementById('captureBtn').addEventListener('click', () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 640;
+            canvas.height = 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg');
+
+            // Send to server
+            fetch('/upload', {
+                method: 'POST',
+                body: JSON.stringify({ image: dataUrl }),
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then((response) => response.json())
+                .then((data) => console.log(data))
+                .catch((error) => console.error('Error uploading image:', error));
+        });
+    </script>
+</body>
+
+</html>
